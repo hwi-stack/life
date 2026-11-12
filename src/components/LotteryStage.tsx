@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLottery } from '../context/LotteryContext';
 import { SlotNumberCard } from './SlotNumberCard';
-import { Sparkles, RotateCw, Wind, Flame, Gift, CheckCircle2, CheckSquare, X, AlertTriangle } from 'lucide-react';
+import { Sparkles, RotateCw, Wind, Flame, Gift, CheckCircle2, CheckSquare, X, AlertTriangle, PartyPopper } from 'lucide-react';
+import { fireCelebrationFireworks } from '../utils/confetti';
+import { soundManager } from '../utils/sound';
 
 export const LotteryStage: React.FC = () => {
   const {
@@ -308,9 +310,23 @@ export const LotteryStage: React.FC = () => {
               </button>
             )}
 
-            {/* Always-accessible '전체 다시 추첨' button when any slots are drawn */}
+            {/* Always-accessible '전체 다시 추첨' and '축하 폭죽 팡팡' buttons when any slots are drawn */}
             {drawnCount > 0 && (
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isDrawing}
+                  onClick={() => {
+                    soundManager.playFanfare();
+                    fireCelebrationFireworks();
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-xs sm:text-sm font-black shadow-md shadow-amber-500/30 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  title="축하 팡파르와 폭죽을 팡팡 터뜨립니다!"
+                >
+                  <PartyPopper className="w-4 h-4 text-slate-950" />
+                  <span>축하 폭죽 팡팡!</span>
+                </button>
+
                 <button
                   type="button"
                   disabled={isDrawing}
@@ -322,10 +338,10 @@ export const LotteryStage: React.FC = () => {
                       onConfirm: () => resetPrize(currentPrize.id)
                     });
                   }}
-                  className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-400 text-sm font-bold shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-400 text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                 >
                   <RotateCw className="w-4 h-4 text-amber-700" />
-                  <span>이 경품 전체 다시 추첨 (리셋)</span>
+                  <span>전체 다시 추첨 (리셋)</span>
                 </button>
               </div>
             )}

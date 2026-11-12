@@ -1,29 +1,54 @@
 import confetti from 'canvas-confetti';
+import { soundManager } from './sound';
 
 export function fireCelebrationFireworks() {
-  const duration = 4.5 * 1000;
+  const duration = 6 * 1000;
   const animationEnd = Date.now() + duration;
-  const defaults = { startVelocity: 35, spread: 360, ticks: 70, zIndex: 9999 };
 
-  function randomInRange(min: number, max: number) {
-    return Math.random() * (max - min) + min;
-  }
+  // Festival palette: Sparkling Golds, Warm Corals, Sky Blues, Emerald, Magenta
+  const festivalColors = ['#f59e0b', '#fbbf24', '#ef4444', '#f43f5e', '#3b82f6', '#10b981', '#ec4899', '#ffffff'];
 
-  // Left and Right Cannon bursts
+  // Initial Mega Triple Blast (Left, Center, Right)
+  soundManager.playFireworkPop();
+
+  // Left Cannon
   confetti({
-    ...defaults,
-    particleCount: 80,
-    origin: { x: 0.15, y: 0.7 },
-    colors: ['#ff4b4b', '#ffd700', '#00e5ff', '#ff007f', '#50e3c2']
+    particleCount: 100,
+    angle: 60,
+    spread: 75,
+    origin: { x: 0.05, y: 0.8 },
+    colors: festivalColors,
+    startVelocity: 55,
+    scalar: 1.2,
+    zIndex: 9999
   });
 
+  // Right Cannon
   confetti({
-    ...defaults,
-    particleCount: 80,
-    origin: { x: 0.85, y: 0.7 },
-    colors: ['#ff4b4b', '#ffd700', '#00e5ff', '#ff007f', '#50e3c2']
+    particleCount: 100,
+    angle: 120,
+    spread: 75,
+    origin: { x: 0.95, y: 0.8 },
+    colors: festivalColors,
+    startVelocity: 55,
+    scalar: 1.2,
+    zIndex: 9999
   });
 
+  // Center High Fountain
+  confetti({
+    particleCount: 120,
+    angle: 90,
+    spread: 100,
+    origin: { x: 0.5, y: 0.9 },
+    colors: ['#ffd700', '#ffa500', '#ff4500', '#00e5ff'],
+    startVelocity: 60,
+    scalar: 1.3,
+    zIndex: 9999
+  });
+
+  // Continuous Fireworks & Falling Streamers across 6 seconds
+  let tickCounter = 0;
   const interval: ReturnType<typeof setInterval> = setInterval(function () {
     const timeLeft = animationEnd - Date.now();
 
@@ -31,22 +56,51 @@ export function fireCelebrationFireworks() {
       return clearInterval(interval);
     }
 
-    const particleCount = 45 * (timeLeft / duration);
+    tickCounter++;
+    const progress = timeLeft / duration;
 
-    // Fireworks style shooting up
+    // Fireworks explosions from random screen locations
+    const randomX = 0.15 + Math.random() * 0.7;
+    const randomY = 0.1 + Math.random() * 0.45;
+
     confetti({
-      ...defaults,
-      particleCount,
-      origin: { x: randomInRange(0.2, 0.4), y: Math.random() - 0.2 },
-      colors: ['#ffd700', '#ff6b6b', '#48dbfb', '#1dd1a1', '#f368e0']
+      particleCount: Math.floor(40 * progress) + 20,
+      startVelocity: 30,
+      spread: 360,
+      ticks: 75,
+      origin: { x: randomX, y: randomY },
+      colors: festivalColors,
+      scalar: 1.1,
+      zIndex: 9999
     });
-    confetti({
-      ...defaults,
-      particleCount,
-      origin: { x: randomInRange(0.6, 0.8), y: Math.random() - 0.2 },
-      colors: ['#ffd700', '#ff9f43', '#54a0ff', '#5f27cd', '#ee5253']
-    });
-  }, 280);
+
+    // Fire audio pop intermittently
+    if (tickCounter % 3 === 0) {
+      soundManager.playFireworkPop();
+    }
+
+    // Side cannons reinjections
+    if (tickCounter % 4 === 0) {
+      confetti({
+        particleCount: 45,
+        angle: 55,
+        spread: 60,
+        origin: { x: 0.08, y: 0.85 },
+        colors: festivalColors,
+        startVelocity: 45,
+        zIndex: 9999
+      });
+      confetti({
+        particleCount: 45,
+        angle: 125,
+        spread: 60,
+        origin: { x: 0.92, y: 0.85 },
+        colors: festivalColors,
+        startVelocity: 45,
+        zIndex: 9999
+      });
+    }
+  }, 320);
 }
 
 export function fireSlotCelebration(rect?: DOMRect | null) {
@@ -59,10 +113,11 @@ export function fireSlotCelebration(rect?: DOMRect | null) {
   }
 
   confetti({
-    particleCount: 35,
-    spread: 60,
+    particleCount: 40,
+    spread: 70,
     origin,
     zIndex: 9999,
-    colors: ['#ffd700', '#ff9f43', '#10b981', '#3b82f6', '#ec4899']
+    colors: ['#ffd700', '#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#ffffff'],
+    scalar: 1.15
   });
 }
