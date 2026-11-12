@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "LotteryState": {
+      "title": "Lottery State",
+      "description": "The active state of prize slots, draw history, and settings for the 2026 festival.",
+      "type": "object",
+      "properties": {
+        "selectedPrizeId": { "type": "string" },
+        "slots": { "type": "object" },
+        "settings": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["slots", "settings", "updatedAt"]
+    },
+    "DrawHistory": {
+      "title": "Draw History",
+      "description": "Log of a winning draw record.",
+      "type": "object",
+      "properties": {
+        "prizeId": { "type": "string" },
+        "prizeName": { "type": "string" },
+        "slotIndex": { "type": "number" },
+        "number": { "type": "number" },
+        "drawnAt": { "type": "string" },
+        "status": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "required": ["prizeId", "number", "drawnAt", "status"]
+    }
+  },
+  "firestore": {
+    "/lottery/{docId}": {
+      "schema": { "$ref": "#/entities/LotteryState" },
+      "description": "Main lottery state and configuration document."
+    },
+    "/draw_history/{recordId}": {
+      "schema": { "$ref": "#/entities/DrawHistory" },
+      "description": "Collection of all prize draw history logs."
+    }
+  }
+}

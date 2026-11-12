@@ -1,0 +1,6 @@
+{
+  "name": "수원시장애인종합복지관 평생교육 어울림 축제 경품 추첨기",
+  "description": "2026년 수원시장애인종합복지관 평생교육 어울림 축제 '이어가는 마음, 어우러지는 하루' 공식 16:9 무대용 경품 추첨기",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
