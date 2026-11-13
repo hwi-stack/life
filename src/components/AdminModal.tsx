@@ -58,6 +58,14 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setTempStart(settings.startNumber);
+      setTempEnd(settings.endNumber);
+      setTempExcluded(settings.excludedNumbers.join(', '));
+    }
+  }, [isOpen, settings]);
+
   if (!isOpen) return null;
 
   const handleSaveSettings = (e: React.FormEvent) => {
@@ -66,7 +74,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
     const parsedEnd = parseInt(String(tempEnd), 10) || 125;
 
     if (parsedStart > parsedEnd) {
-      alert('시작 번호는 종료 번호보다 작거나 같아야 합니다.');
+      showNotification('시작 번호는 종료 번호보다 작거나 같아야 합니다.');
       return;
     }
 

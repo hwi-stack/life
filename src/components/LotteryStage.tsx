@@ -30,7 +30,6 @@ export const LotteryStage: React.FC = () => {
   const isCompleted = drawnCount === currentPrize.count;
   const availablePool = getAvailableNumbers();
 
-  // In-app confirmation dialog state (replaces window.confirm which gets blocked in iframes!)
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -43,7 +42,6 @@ export const LotteryStage: React.FC = () => {
     onConfirm: () => {}
   });
 
-  // Single prize rolling digits for positions 0, 1, 2
   const [singleRandomDigits, setSingleRandomDigits] = useState<[number, number, number]>([0, 0, 0]);
 
   useEffect(() => {
@@ -62,6 +60,12 @@ export const LotteryStage: React.FC = () => {
   const targetFormatted = formatNumber(currentSlots[0]?.number);
   const targetDigits = [targetFormatted[0] || '0', targetFormatted[1] || '0', targetFormatted[2] || '0'];
 
+  // Right-to-left reveal order (e.g. 123 -> '3' first, then '2', then '1')
+  const isSingleDigitLocked = (index: number) => {
+    if (!currentSlots[0]) return false;
+    return currentSlots[0].status === 'revealed' || currentSlots[0].revealedDigits + index >= 3;
+  };
+
   const getSingleDigitDisplay = (index: number) => {
     if (!currentSlots[0] || (currentSlots[0].status === 'empty' && currentSlots[0].number === null)) {
       return '-';
@@ -69,15 +73,10 @@ export const LotteryStage: React.FC = () => {
     if (currentSlots[0].status === 'revealed') {
       return targetDigits[index];
     }
-    if (currentSlots[0].revealedDigits > index) {
+    if (currentSlots[0].revealedDigits + index >= 3) {
       return targetDigits[index];
     }
     return String(singleRandomDigits[index]);
-  };
-
-  const isSingleDigitLocked = (index: number) => {
-    if (!currentSlots[0]) return false;
-    return currentSlots[0].status === 'revealed' || currentSlots[0].revealedDigits > index;
   };
 
   const getSuspenseBannerText = () => {
@@ -88,12 +87,12 @@ export const LotteryStage: React.FC = () => {
         : '동시에 힘차게 추첨 번호가 돌아가고 있습니다...';
     }
     if (activeRevealedDigitStep === 1) {
-      return '첫 번째 번호 공개! (2초 후 두 번째 번호가 공개됩니다)';
+      return '첫 번째 숫자 공개! (2초 후 두 번째 숫자가 공개됩니다)';
     }
     if (activeRevealedDigitStep === 2) {
-      return '두 번째 번호 공개! (2초 후 마지막 번호가 공개됩니다!)';
+      return '두 번째 숫자 공개! (2초 후 마지막 숫자가 공개됩니다!)';
     }
-    return '세 번째 번호 공개! 당첨 확정!';
+    return '세 번째 숫자 공개! 당첨 확정!';
   };
 
   return (
@@ -171,7 +170,7 @@ export const LotteryStage: React.FC = () => {
                 className="px-5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-sm shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer animate-bounce"
               >
                 <RotateCw className="w-4 h-4 text-amber-300 animate-spin" />
-                <span>선택한 {selectedSlotIndices.length}명 동시 재추첨 시작! (2초 간격 3자리)</span>
+                <span>선택한 {selectedSlotIndices.length}명 동시 재추첨 시작!</span>
               </button>
             </div>
           </div>
@@ -215,11 +214,11 @@ export const LotteryStage: React.FC = () => {
               })}
             </div>
           ) : (
-            /* 1 Prize (헤어드라이기 or 밥솥): Clean VIP Showcase */
+            /* 1 Prize (헤어드라이기 or 밥솥): Extra-Large High-Contrast Showcase */
             <div className="flex flex-col items-center justify-center py-4">
-              <div className="relative p-6 sm:p-8 rounded-3xl bg-white border-2 border-amber-300 shadow-xl flex flex-col items-center max-w-lg w-full text-center overflow-hidden">
+              <div className="relative p-6 sm:p-8 rounded-3xl bg-white border-2 border-amber-300 shadow-xl flex flex-col items-center max-w-xl w-full text-center overflow-hidden">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs sm:text-sm font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                  <span className="text-xs sm:text-sm font-bold px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
                     축제 특별 경품 (1명)
                   </span>
                 </div>
@@ -228,9 +227,9 @@ export const LotteryStage: React.FC = () => {
                   {currentPrize.name}
                 </h3>
 
-                {/* Big 3 Digits Display */}
-                <div className="w-full py-6 px-6 sm:px-8 rounded-2xl bg-amber-50/60 border-2 border-amber-300 shadow-inner flex flex-col items-center justify-center my-2">
-                  <div className="flex items-center gap-3 sm:gap-4">
+                {/* Big 3 Digits Display: Large & high contrast */}
+                <div className="w-full py-7 px-6 sm:px-8 rounded-2xl bg-amber-50/70 border-2 border-amber-300 shadow-inner flex flex-col items-center justify-center my-2">
+                  <div className="flex items-center gap-3 sm:gap-5">
                     {[0, 1, 2].map((idx) => {
                       const locked = isSingleDigitLocked(idx);
                       const val = getSingleDigitDisplay(idx);
@@ -238,13 +237,13 @@ export const LotteryStage: React.FC = () => {
                       return (
                         <div
                           key={idx}
-                          className={`w-20 h-28 sm:w-24 sm:h-32 flex items-center justify-center rounded-2xl font-mono text-6xl sm:text-7xl font-black shadow-md transition-all ${
+                          className={`w-24 h-32 sm:w-28 sm:h-36 lg:w-32 lg:h-40 flex items-center justify-center rounded-2xl font-mono text-7xl sm:text-8xl lg:text-9xl leading-none font-black shadow-md transition-all ${
                             locked && currentSlots[0]?.status === 'revealed'
-                              ? 'bg-gradient-to-b from-amber-100 to-amber-200 border-2 border-amber-500 text-amber-950 shadow-lg'
+                              ? 'bg-gradient-to-b from-amber-50 to-amber-100 border-3 border-amber-500 text-slate-950 shadow-lg'
                               : locked && isDrawing
-                              ? 'bg-amber-300 border-2 border-amber-600 text-amber-950 scale-105 shadow-xl animate-digit-pop'
+                              ? 'bg-amber-300 border-3 border-amber-600 text-slate-950 scale-105 shadow-xl animate-digit-pop'
                               : isDrawing
-                              ? 'bg-white border-2 border-amber-300 text-amber-700 animate-pulse'
+                              ? 'bg-white border-2 border-amber-300 text-amber-800 animate-pulse'
                               : 'bg-white border-2 border-slate-200 text-slate-300'
                           }`}
                         >
@@ -253,12 +252,6 @@ export const LotteryStage: React.FC = () => {
                       );
                     })}
                   </div>
-
-                  {currentSlots[0]?.drawnAt && currentSlots[0].status === 'revealed' && (
-                    <div className="text-xs text-slate-500 font-mono mt-4 font-semibold">
-                      추첨 시각: {currentSlots[0]?.drawnAt}
-                    </div>
-                  )}
                 </div>
 
                 {/* Re-draw Button */}

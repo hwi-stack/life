@@ -123,6 +123,9 @@ export const LotteryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedSlotIndices, setSelectedSlotIndices] = useState<number[]>([]);
   const [activeRevealedDigitStep, setActiveRevealedDigitStep] = useState<number>(0);
 
+  const isRemoteUpdateRef = React.useRef(false);
+  const hasMountedRef = React.useRef(false);
+
   // Sync sound manager with settings
   useEffect(() => {
     soundManager.setMuted(!settings.soundEnabled);
@@ -132,6 +135,7 @@ export const LotteryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const unsubscribe = subscribeLotteryState((cloudData) => {
       if (cloudData) {
+        isRemoteUpdateRef.current = true;
         if (cloudData.slots) {
           setSlots(cloudData.slots);
           localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(cloudData.slots));
@@ -154,7 +158,7 @@ export const LotteryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // Save to LocalStorage & Firestore on local changes
+  // Save to LocalStorage & Firestore on local changes (avoiding remote-echo loops and spinning intermediate saves)
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(slots));
@@ -162,17 +166,28 @@ export const LotteryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
       localStorage.setItem(STORAGE_KEYS.SELECTED_PRIZE, selectedPrizeId);
 
-      // Cloud Firestore sync (non-blocking)
-      saveLotteryStateToFirestore({
-        slots,
-        settings,
-        selectedPrizeId,
-        history
-      });
+      if (!hasMountedRef.current) {
+        hasMountedRef.current = true;
+        return;
+      }
+
+      if (isRemoteUpdateRef.current) {
+        isRemoteUpdateRef.current = false;
+        return;
+      }
+
+      if (!isDrawing) {
+        saveLotteryStateToFirestore({
+          slots,
+          settings,
+          selectedPrizeId,
+          history
+        });
+      }
     } catch (e) {
       console.error('Failed to persist state', e);
     }
-  }, [slots, history, settings, selectedPrizeId]);
+  }, [slots, history, settings, selectedPrizeId, isDrawing]);
 
   // Clear selections when switching prizes
   useEffect(() => {
